@@ -4,21 +4,58 @@ A simplified event ticket booking system built with the MERN stack. Users can br
 events, select seats on a live seat map, reserve them for a short window, and confirm
 the booking before the reservation expires.
 
+**Live Demo:** [https://ticket-booking-pv8a.onrender.com](https://ticket-booking-pv8a.onrender.com)
+
+> Note: the demo runs on Render's free tier, so the server spins down after periods
+> of inactivity. The first request after idling can take up to ~50 seconds to wake up.
+
+---
+
+## Screenshots
+
+| Home / Events | Seat Selection |
+|----------------|------------------|
+| <img width="941" height="905" alt="image" src="https://github.com/user-attachments/assets/37607d3c-15dd-42f7-9df5-d29c16e67021" />
+
+| Seat Selection  | Seat Selection |
+|----------------|------------------|
+|<img width="947" height="927" alt="image" src="https://github.com/user-attachments/assets/32dba3c9-0801-49cc-84c9-ec3dbace5f86" />
+|
+
+
+| Login | Register |
+|---------|------------|
+| <img width="957" height="922" alt="image" src="https://github.com/user-attachments/assets/22c4a96e-0720-4ef5-9ee5-a2a92ab0168e" />
+
+| Register | Register |
+|---------|------------|
+ |<img width="963" height="876" alt="image" src="https://github.com/user-attachments/assets/ed82b607-a819-40a2-b883-3742e8b5129e" />
+|
+
+> Drop your screenshot files into the `screenshots/` folder using the filenames
+> above (`home.png`, `seats.png`, `login.png`, `register.png`) and they'll render
+> automatically here. Add or rename rows as needed for any other screens.
+
 ---
 
 ## Tech Stack
 
-| Layer    | Technology                                  |
-|----------|----------------------------------------------|
-| Frontend | React (Vite), Tailwind CSS, Axios, React Router |
-| Backend  | Node.js, Express, Mongoose                   |
-| Database | MongoDB                                       |
-| Auth     | JWT (JSON Web Tokens)                         |
+| Layer    | Technology                                       |
+|----------|---------------------------------------------------|
+| Frontend | React (Vite), Tailwind CSS, Axios, React Router    |
+| Backend  | Node.js, Express, Mongoose                         |
+| Database | MongoDB                                            |
+| Auth     | JWT (JSON Web Tokens)                              |
+| Hosting  | Render (single web service, serves both API + UI)  |
+
+---
 
 ## Folder Structure
 
 ```
 ticket-booking/
+├── package.json             Root scripts: build (frontend) + start (backend) for deployment
+│
 ├── backend/                 Express + MongoDB API
 │   └── src/
 │       ├── config/          Database connection setup
@@ -27,7 +64,7 @@ ticket-booking/
 │       ├── routes/          Express route definitions
 │       ├── middleware/      JWT auth middleware
 │       ├── utils/           Seed script for sample data
-│       └── server.js        App entry point
+│       └── server.js        App entry point (also serves the built frontend)
 │
 └── frontend/                React client
     └── src/
@@ -44,11 +81,14 @@ ticket-booking/
 
 ---
 
-## Getting Started
+## Running It Locally
+
+During development, the backend and frontend run as two separate servers
+(frontend on Vite's dev server, backend on Express), talking to each other over HTTP.
 
 ### Prerequisites
 
-- Node.js (v18 or later)
+- Node.js v18 or later
 - MongoDB running locally, or a MongoDB Atlas connection string
 
 ### 1. Backend Setup
@@ -102,7 +142,7 @@ npm run dev
 
 The app runs at `http://localhost:5173`.
 
-### 3. Try it out
+### 3. Try It Out
 
 1. Open `http://localhost:5173` and click **Register** to create an account.
 2. Pick an event from the home page.
@@ -112,19 +152,85 @@ The app runs at `http://localhost:5173`.
 
 ---
 
+## Deployment Notes
+
+In production, there's no separate frontend server — the Express backend serves the
+built React app as static files, and both the API and UI are served from the same
+origin. This is why the deployed app and the API share a single Render URL.
+
+The root `package.json` orchestrates this:
+
+```json
+"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend",
+"start": "node backend/src/server.js"
+```
+
+On Render: **Build Command** is `npm run build`, **Start Command** is `npm start`,
+and `MONGO_URI`, `JWT_SECRET`, and `RESERVATION_MINUTES` are set as environment
+variables in the Render dashboard (not committed to the repo).
+
+---
+
 ## API Reference
 
-| Method | Endpoint                | Auth required | Description                                   |
-|--------|--------------------------|----------------|------------------------------------------------|
-| GET    | `/api/events`              | No             | List all events                                 |
-| GET    | `/api/events/:id`           | No             | Get details for a single event                  |
-| GET    | `/api/events/:id/seats`      | No             | Get all seats for an event (used by the seat grid) |
-| POST   | `/api/auth/register`        | No             | Create a new user account, returns a JWT         |
-| POST   | `/api/auth/login`           | No             | Log in, returns a JWT                            |
-| POST   | `/api/reserve`               | Yes            | Reserve seats for 10 minutes                     |
-| POST   | `/api/bookings`               | Yes            | Confirm booking for an active reservation          |
+| Method | Endpoint                | Auth required | Description                                          |
+|--------|---------------------------|----------------|--------------------------------------------------------|
+| GET    | `/api/events`               | No             | List all events                                         |
+| GET    | `/api/events/:id`            | No             | Get details for a single event                          |
+| GET    | `/api/events/:id/seats`       | No             | Get all seats for an event (used by the seat grid)        |
+| POST   | `/api/auth/register`         | No             | Create a new user account, returns a JWT                  |
+| POST   | `/api/auth/login`            | No             | Log in, returns a JWT                                    |
+| POST   | `/api/reserve`                | Yes            | Reserve seats for 10 minutes                              |
+| POST   | `/api/bookings`                 | Yes            | Confirm booking for an active reservation                   |
 
 Authenticated requests must include `Authorization: Bearer <token>` in the headers.
+
+---
+
+## Data Models
+
+All four collections live in MongoDB and are defined with Mongoose schemas.
+Every model also gets `createdAt` and `updatedAt` automatically via `{ timestamps: true }`.
+
+### Event
+
+| Field        | Type     | Required | Notes                                  |
+|--------------|----------|----------|-------------------------------------------|
+| `name`         | String     | Yes        | Trimmed                                      |
+| `dateTime`     | Date       | Yes        | When the event takes place                   |
+| `venue`        | String     | Yes        | Trimmed                                      |
+| `totalSeats`   | Number     | Yes        | Minimum value of `1`                          |
+
+### Seat
+
+| Field        | Type     | Required | Notes                                                            |
+|--------------|----------|----------|----------------------------------------------------------------------|
+| `eventId`      | ObjectId   | Yes        | References `Event`                                                     |
+| `seatNumber`   | String     | Yes        | e.g. `"S1"`                                                            |
+| `status`       | String     | No         | One of `available`, `reserved`, `booked`. Defaults to `available`        |
+
+A unique compound index on `{ eventId, seatNumber }` prevents two seats with the
+same number existing for the same event.
+
+### Reservation
+
+| Field          | Type       | Required | Notes                                          |
+|----------------|------------|----------|------------------------------------------------------|
+| `userId`         | ObjectId     | Yes        | References `User`                                       |
+| `eventId`        | ObjectId     | Yes        | References `Event`                                      |
+| `seatNumbers`     | [String]     | Yes        | The seats held by this reservation                       |
+| `expiresAt`       | Date         | Yes        | When the hold on these seats expires                      |
+
+A TTL index on `expiresAt` (`expireAfterSeconds: 0`) auto-deletes the document
+once it expires.
+
+### User
+
+| Field        | Type     | Required | Notes                                  |
+|--------------|----------|----------|-------------------------------------------|
+| `name`         | String     | Yes        | Trimmed                                      |
+| `email`        | String     | Yes        | Unique, lowercased, trimmed                   |
+| `password`     | String     | Yes        | Stored as a bcrypt hash, never the plain text  |
 
 ---
 
@@ -173,8 +279,7 @@ guarantees a partial failure never leaves seats stuck in a half-reserved state.
 
 - Every `Reservation` document stores an `expiresAt` timestamp.
 - A MongoDB **TTL index** on `expiresAt` automatically deletes the reservation
-  document once it expires, freeing up the seats for other users (well, the seats
-  themselves stay `reserved` until cleaned up — see note below).
+  document once it expires.
 - `POST /api/bookings` independently checks `expiresAt` against the current time
   before marking seats as `booked`. This means an expired reservation can never be
   confirmed, even in the brief window before MongoDB's TTL cleanup runs.
