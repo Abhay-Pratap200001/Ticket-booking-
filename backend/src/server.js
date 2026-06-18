@@ -22,11 +22,6 @@ app.use("/api/events", eventRoutes);
 app.use("/api/reserve", reserveRoutes);
 app.use("/api/bookings", bookingRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Ticket booking API is running");
-});
-
-
 app.use(express.static(path.join(__dirname, 'frontend/dist')))
 
 app.get('*', (req, res) => {
