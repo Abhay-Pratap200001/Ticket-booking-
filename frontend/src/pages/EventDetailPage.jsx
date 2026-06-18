@@ -166,16 +166,17 @@ const EventDetailPage = () => {
           {!reservation ? (
             <>
               <div className="flex items-center gap-3 bg-indigo-50 text-indigo-700 rounded-xl p-4 mt-6">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 17V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9" />
-                  <path d="M2 17h20v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1Z" />
-                  <path d="M6 11h.01M6 14h.01" />
-                </svg>
+                <span className="bg-indigo-100 text-indigo-600 p-2 rounded-lg flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 0 0 4v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a2 2 0 0 0 0-4Z" />
+                    <path d="M9 7v10" strokeDasharray="2 2" />
+                  </svg>
+                </span>
                 <div className="text-sm">
-                  <p className="font-medium">
+                  <p className="font-semibold">
                     {selectedSeats.length === 0
                       ? "You haven't selected any seats yet."
-                      : `You have selected ${selectedSeats.length} seat(s): ${selectedSeats.join(", ")}`}
+                      : `${selectedSeats.length} seat(s) selected: ${selectedSeats.join(", ")}`}
                   </p>
                   <p className="text-indigo-500">Select your preferred seats to continue.</p>
                 </div>
@@ -184,7 +185,7 @@ const EventDetailPage = () => {
               <button
                 onClick={handleReserve}
                 disabled={isReserving || selectedSeats.length === 0}
-                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl mt-4 disabled:opacity-50"
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl mt-4 font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 0 0 4v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a2 2 0 0 0 0-4Z" />
@@ -193,15 +194,20 @@ const EventDetailPage = () => {
               </button>
             </>
           ) : (
-            <div className="flex items-center gap-4 mt-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-green-50 rounded-xl p-4 mt-6">
+              <div>
+                <p className="text-sm font-semibold text-green-700">
+                  Seats reserved: {reservation.seatNumbers.join(", ")}
+                </p>
+                <CountdownTimer expiresAt={reservation.expiresAt} onExpire={handleReservationExpire} />
+              </div>
               <button
                 onClick={handleConfirmBooking}
                 disabled={isBooking}
-                className="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl disabled:opacity-50"
+                className="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl font-medium disabled:opacity-50"
               >
                 {isBooking ? "Confirming..." : "Confirm Booking"}
               </button>
-              <CountdownTimer expiresAt={reservation.expiresAt} onExpire={handleReservationExpire} />
             </div>
           )}
         </div>
